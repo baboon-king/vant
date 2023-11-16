@@ -8,6 +8,7 @@ import {
 import { LONG_PRESS_START_TIME } from '../../utils';
 import ImagePreview from '../ImagePreview';
 import { images, triggerZoom } from './shared';
+import type { ImagePreviewInstance } from '../types';
 
 test('should swipe to current index after calling the swipeTo method', async () => {
   const wrapper = mount(ImagePreview, {
@@ -217,8 +218,8 @@ test('should not close when overlay is clicked and closeOnClickOverlay is false'
   expect(wrapper.emitted('close')).toBeFalsy();
 });
 
-test('double click', async () => {
-  const onScale = jest.fn();
+test('should trigger scale after double clicking', async () => {
+  const onScale = vi.fn();
   const wrapper = mount(ImagePreview, {
     props: {
       images,
@@ -243,6 +244,24 @@ test('double click', async () => {
     index: 0,
     scale: 1,
   });
+});
+
+test('should allow to disable double click gesture', async () => {
+  const onScale = vi.fn();
+  const wrapper = mount(ImagePreview, {
+    props: {
+      images,
+      show: true,
+      doubleScale: false,
+      onScale,
+    },
+  });
+
+  await later();
+  const swipe = wrapper.find('.van-swipe-item');
+  triggerDrag(swipe, 0, 0);
+  triggerDrag(swipe, 0, 0);
+  expect(onScale).toHaveBeenCalledTimes(0);
 });
 
 test('zoom in and drag image to move', async () => {
@@ -276,7 +295,7 @@ test('zoom in and drag image to move', async () => {
 test('zoom out', async () => {
   const restore = mockGetBoundingClientRect({ width: 100, height: 100 });
 
-  const onScale = jest.fn();
+  const onScale = vi.fn();
   const wrapper = mount(ImagePreview, {
     props: {
       images,
@@ -328,7 +347,7 @@ test('should render image slot correctly 2', async () => {
 });
 
 test('should emit long-press event after long press', async () => {
-  const onLongPress = jest.fn();
+  const onLongPress = vi.fn();
   const wrapper = mount(ImagePreview, {
     props: {
       images,
@@ -346,4 +365,24 @@ test('should emit long-press event after long press', async () => {
   expect(onLongPress).toHaveBeenLastCalledWith({
     index: 0,
   });
+});
+
+test('should reset scale after calling the resetScale method', async () => {
+  const wrapper = mount(ImagePreview, {
+    props: {
+      show: true,
+      images,
+    },
+  });
+
+  await later();
+  const image = wrapper.find('.van-image');
+
+  triggerZoom(image, 300, 300);
+  await later();
+  expect(image.style.transform).toBeTruthy();
+
+  (wrapper.vm as ImagePreviewInstance).resetScale();
+  await later();
+  expect(image.style.transform).toBeFalsy();
 });

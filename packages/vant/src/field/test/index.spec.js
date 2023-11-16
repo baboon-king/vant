@@ -107,6 +107,21 @@ test('should render textarea when type is textarea', async () => {
   expect(wrapper.html()).toMatchSnapshot();
 });
 
+test('should show required icon when using rules which contain required', async () => {
+  const wrapper = mount(Field, {
+    props: {
+      modelValue: '123',
+      label: '123',
+      required: 'auto',
+      rules: [{ required: false }],
+    },
+  });
+
+  expect(wrapper.find('.van-field__label--required').exists()).toBeFalsy();
+  await wrapper.setProps({ rules: [{ required: true }] });
+  expect(wrapper.find('.van-field__label--required').exists()).toBeTruthy();
+});
+
 test('should autosize textarea field', async () => {
   const wrapper = mount(Field, {
     props: {
@@ -123,7 +138,7 @@ test('should autosize textarea field', async () => {
 });
 
 test('should allow autosize prop be be an object', async () => {
-  window.scrollTo = jest.fn();
+  window.scrollTo = vi.fn();
 
   const wrapper = mount(Field, {
     props: {
@@ -143,7 +158,7 @@ test('should allow autosize prop be be an object', async () => {
 
 test('should call input.focus when vm.focus is called', () => {
   const wrapper = mount(Field);
-  const onFocus = jest.fn();
+  const onFocus = vi.fn();
   wrapper.find('input').element.focus = onFocus;
 
   wrapper.vm.focus();
@@ -152,7 +167,7 @@ test('should call input.focus when vm.focus is called', () => {
 
 test('should call input.blur when vm.blur is called', () => {
   const wrapper = mount(Field);
-  const onBlur = jest.fn();
+  const onBlur = vi.fn();
   wrapper.find('input').element.blur = onBlur;
 
   wrapper.vm.blur();
@@ -398,7 +413,7 @@ test('should blur search input after pressing enter', async () => {
     },
   });
 
-  const onBlur = jest.fn();
+  const onBlur = vi.fn();
   wrapper.find('input').element.blur = onBlur;
   await wrapper.find('input').trigger('keypress.enter');
   expect(onBlur).toHaveBeenCalledTimes(1);
